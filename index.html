@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janice - 跨領域生醫數據工程師</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-size: 18px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", sans-serif;
+    background: #F4F7FA;
+    color: #2C3E50;
+    line-height: 1.8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(44, 110, 156, 0.06) 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(61, 155, 126, 0.06) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(27, 42, 74, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-fixed {
+    position: fixed;         /*保持在視窗固定位置*/
+    pointer-events: none;    /*滑鼠不會被這些裝飾元素擋到*/
+    z-index: 0;              /*將圖層置於底層*/
+    font-family: "Courier New", monospace;
+    white-space: pre;
+  }
+
+  .dna-helix { opacity: 0.07; line-height: 0.7; letter-spacing: -3px; }
+  .dna-1 { top: 6%; left: -20px; transform: rotate(-12deg); font-size: 110px; color: #2C6E9C; }
+  .dna-2 { bottom: 3%; right: -10px; transform: rotate(8deg); font-size: 80px; color: #3D9B7E; }
+  .dna-3 { top: 48%; left: 2%; transform: rotate(5deg); font-size: 60px; color: #1B2A4A; opacity: 0.05; }
+
+  .code-elem { opacity: 0.06; font-size: 14px; color: #2C6E9C; font-weight: bold; }
+  .code-1 { top: 20%; left: 82%; }
+  .code-2 { bottom: 50%; right: 88%; }
+  .code-3 { top: 65%; left: 85%; }
+  .code-4 { bottom: 30%; right: 86%; }
+  .code-5 { top: 35%; left: 86%; }
+  .code-6 { bottom: 60%; right: 90%; }
+
+  .bio-sym { opacity: 0.08; font-size: 22px; }
+  .bio-1 { top: 14%; left: 5%; color: #3D9B7E; }
+  .bio-2 { top: 72%; right: 4%; color: #2C6E9C; }
+  .bio-3 { bottom: 18%; left: 4%; color: #1B2A4A; }
+  .bio-4 { top: 82%; left: 50%; color: #3D9B7E; transform: translateX(-50%); }
+
+  .neuron { position: fixed; pointer-events: none; z-index: 0; opacity: 0.04; }
+  .neuron-dot {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: #2C6E9C;
+  }
+  .neuron-line {
+    position: absolute; height: 1px; background: #2C6E9C; transform-origin: left center;
+  }
+
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(1deg); }
+  }
+  .dna-1 { animation: float-slow 14s ease-in-out infinite; }
+  .dna-2 { animation: float-slow 16s ease-in-out infinite 3s; }
+
+  @keyframes pulse-fade {
+    0%, 100% { opacity: 0.04; }
+    50% { opacity: 0.1; }
+  }
+  .bio-1 { animation: pulse-fade 5s ease-in-out infinite; }
+  .bio-2 { animation: pulse-fade 6s ease-in-out infinite 1s; }
+  .bio-3 { animation: pulse-fade 4s ease-in-out infinite 2s; }
+
+  .container { max-width: 880px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  header {
+    padding: 50px 0 50px;
+    background:
+      linear-gradient(135deg, #0a1628 0%, #132244 40%, #1a2d50 70%, #0f1a33 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+    z-index: 1;
+  }
+  header::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: url('dna-glow.png') center / cover no-repeat;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .header-inner { display: flex; align-items: center; gap: 36px; }
+  .profile-pic {
+    width: 200px; height: 260px; border-radius: 12px; flex-shrink: 0;
+    object-fit: cover; object-position: center;
+    border: 2px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .header-text { flex: 1; text-align: left; }
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 3px;
+  }
+  header .title-role {
+    font-size: 1rem;
+    color: #7ab7e0;
+    margin-top: 6px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  header .tagline {
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: #ffffff;
+    font-weight: 500;
+    max-width: 620px;
+    line-height: 1.75;
+  }
+  header .info-row {
+    margin-top: 18px;
+    font-size: 0.84rem;
+    color: #ffffff;
+    font-weight: 500;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  header .info-row a { color: #7ab7e0; text-decoration: none; }
+  header .info-row a:hover { text-decoration: underline; }
+  header .info-row span { display: inline-flex; align-items: center; gap: 5px; }
+  @media (max-width: 640px) {
+    .header-inner { flex-direction: column; text-align: center; gap: 16px; }
+    .header-text { text-align: center; }
+    header .info-row { justify-content: center; }
+    .profile-pic { width: 150px; height: 200px; }
+  }
+
+  section {
+    padding: 44px 0;
+    position: relative;
+    z-index: 1;
+  }
+  section + section { margin-top: 0; }
+
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1B2A4A;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    border-bottom: 2.5px solid #2C6E9C;
+    display: inline-block;
+    letter-spacing: 1px;
+  }
+
+  .skills-table { width: 100%; border-collapse: collapse; }
+  .skills-table th, .skills-table td {
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #E8EDF2;
+  }
+  .skills-table th {
+    color: #2C6E9C;
+    font-weight: 600;
+    white-space: nowrap;
+    width: 18%;
+  }
+  .skills-table td:first-of-type {
+    color: #1B2A4A;
+    font-weight: 500;
+    width: 28%;
+  }
+  .skills-table td:last-child { color: #5D6D7E; width: 54%; }
+  .skills-table tr:last-child td, .skills-table tr:last-child th { border-bottom: none; }
+
+  @media (max-width: 640px) {
+    .skills-table, .skills-table tbody, .skills-table tr, .skills-table th, .skills-table td { display: block; }
+    .skills-table tr {
+      background: white; border-radius: 10px; margin-bottom: 12px;
+      padding: 12px; border: 1px solid #E8EDF2;
+    }
+    .skills-table th { border-bottom: 1px dashed #E8EDF2; padding: 0 0 4px 0; margin-bottom: 6px; }
+    .skills-table td { border: none; padding: 3px 0; width: 100% !important; }
+  }
+
+  .project {
+    margin-bottom: 24px;
+    padding: 20px 22px;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    border: 1px solid #E8EDF2;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .project:last-child { margin-bottom: 0; }
+  .project:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(27,42,74,0.06); }
+  .project .project-num {
+    font-size: 0.76rem;
+    color: #2C6E9C;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .project .project-title {
+    font-size: 1rem;
+    color: #1B2A4A;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .project .project-sub {
+    font-size: 0.82rem;
+    color: #3D9B7E;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .project .project-desc {
+    font-size: 0.85rem;
+    color: #5D6D7E;
+    margin-bottom: 6px;
+    line-height: 1.6;
+  }
+  .project ul { list-style: none; margin-top: 4px; }
+  .project li {
+    font-size: 0.84rem;
+    color: #4A5A6A;
+    padding: 2px 0 2px 14px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .project li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: #2C6E9C;
+    font-weight: bold;
+  }
+  .project-preview {
+    display: flex; align-items: center; gap: 20px;
+    padding: 16px 20px; margin-top: 12px;
+    background: rgba(44,110,156,0.04);
+    border: 1px solid rgba(44,110,156,0.12);
+    border-radius: 12px;
+    text-decoration: none; color: inherit;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .project-preview:hover { background: rgba(44,110,156,0.08); border-color: rgba(44,110,156,0.25); }
+  .project-preview-icon {
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 10px;
+    background: linear-gradient(135deg, #2C6E9C, #3D9B7E);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; color: white;
+  }
+  .project-preview-text { flex: 1; }
+  .project-preview-title { font-size: 0.9rem; font-weight: 600; color: #1B2A4A; }
+  .project-preview-desc { font-size: 0.78rem; color: #5D6D7E; margin-top: 2px; }
+  .project-preview-arrow { flex-shrink: 0; font-size: 1.2rem; color: #2C6E9C; }
+
+  /* 影片嵌入（click-to-play + tab 切換） */
+  .tab-bar {
+    display: flex; gap: 8px; margin: 12px 0 10px;
+  }
+  .tab-btn {
+    flex: 1; padding: 8px 12px; border: 1px solid #E8EDF2; border-radius: 8px;
+    background: rgba(255,255,255,0.5); font-size: 0.82rem; cursor: pointer;
+    color: #5D6D7E; transition: all 0.2s; font-family: inherit;
+  }
+  .tab-btn:hover { background: rgba(44,110,156,0.06); border-color: #2C6E9C; color: #2C6E9C; }
+  .tab-btn.active { background: #2C6E9C; border-color: #2C6E9C; color: #fff; }
+
+  .video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: #1B2A4A;
+    cursor: pointer;
+  }
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+  }
+  .video-thumb {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; border-radius: 10px; display: block;
+  }
+  .video-play-btn {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(0,0,0,0.65); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 2;
+  }
+  .video-play-btn:hover { background: rgba(0,0,0,0.85); transform: translate(-50%,-50%) scale(1.08); }
+  .video-play-btn::after {
+    content: ""; display: block;
+    border-left: 18px solid white; border-top: 11px solid transparent; border-bottom: 11px solid transparent;
+    margin-left: 4px;
+  }
+
+
+  footer {
+    text-align: center;
+    padding: 28px 0;
+    color: #95A5A6;
+    font-size: 0.8rem;
+    border-top: 1px solid #E8EDF2;
+    position: relative;
+    z-index: 1;
+  }
+
+
+
+  /* Scroll Reveal */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.active { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* Card Section */
+  .card-section {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 18px;
+    border: 1px solid #E8EDF2;
+    box-shadow: 0 2px 20px rgba(27,42,74,0.04);
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    transition: box-shadow 0.3s;
+  }
+  .card-section:hover { box-shadow: 0 6px 30px rgba(27,42,74,0.08); }
+  .card-section .section-title { margin-top: 0; }
+
+  /* Carousel */
+
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.35rem; }
+    header .title-role { font-size: 0.9rem; }
+    header { padding: 36px 0 28px; }
+    section { padding: 32px 0; }
+    header .info-row { flex-direction: column; gap: 4px; }
+  }
+
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .grid-full { grid-column: 1 / -1; }
+  @media (max-width: 700px) {
+    .portfolio-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- CSS fixed -->
+<div class="bg-fixed dna-helix dna-1">AT<br>CG<br>TA<br>GC<br>AT<br>CG<br>TA<br>GC<br>AT<br>CG<br>TA<br>GC</div>
+<div class="bg-fixed dna-helix dna-2">GC<br>TA<br>CG<br>AT<br>GC<br>TA<br>CG<br>AT</div>
+<div class="bg-fixed dna-helix dna-3">5'→3'<br>───<br>3'←5'</div>
+
+<div class="bg-fixed code-elem code-1">{ def }</div>
+<div class="bg-fixed code-elem code-2">import</div>
+<div class="bg-fixed code-elem code-3">model.fit()</div>
+<div class="bg-fixed code-elem code-4">data = pd</div>
+<div class="bg-fixed code-elem code-5">&lt;/&gt;</div>
+<div class="bg-fixed code-elem code-6">$ python3</div>
+
+<div class="bg-fixed bio-sym bio-1">🧬</div>
+<div class="bg-fixed bio-sym bio-2">🔬</div>
+<div class="bg-fixed bio-sym bio-3">⚗️</div>
+<div class="bg-fixed bio-sym bio-4">········</div>
+
+<!-- DNA 雙股螺旋插圖 -->
+<svg class="bg-fixed" style="bottom:6%;left:1%;opacity:0.07;width:140px;height:160px;" viewBox="0 0 140 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2C6E9C" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#3D9B7E" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <!-- Strand 1 -->
+  <path d="M30,5 C50,20 50,40 30,55 C10,70 10,90 30,105 C50,120 50,140 30,155" stroke="#2C6E9C" stroke-width="2.5" opacity="0.7"/>
+  <!-- Strand 2 -->
+  <path d="M110,5 C90,20 90,40 110,55 C130,70 130,90 110,105 C90,120 90,140 110,155" stroke="#3D9B7E" stroke-width="2.5" opacity="0.7"/>
+  <!-- Base pairs -->
+  <line x1="38" y1="18" x2="102" y2="18" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="42" y1="30" x2="98" y2="30" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="38" y1="42" x2="102" y2="42" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="42" y1="55" x2="98" y2="55" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="38" y1="68" x2="102" y2="68" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="42" y1="82" x2="98" y2="82" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="38" y1="95" x2="102" y2="95" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="42" y1="108" x2="98" y2="108" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="38" y1="122" x2="102" y2="122" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <line x1="42" y1="138" x2="98" y2="138" stroke="#1B2A4A" stroke-width="1" opacity="0.3"/>
+  <!-- Labels -->
+  <text x="46" y="22" font-size="5" fill="#2C6E9C" opacity="0.4" font-family="monospace">A</text>
+  <text x="94" y="22" font-size="5" fill="#3D9B7E" opacity="0.4" font-family="monospace">T</text>
+  <text x="90" y="45" font-size="5" fill="#2C6E9C" opacity="0.4" font-family="monospace">G</text>
+  <text x="50" y="45" font-size="5" fill="#3D9B7E" opacity="0.4" font-family="monospace">C</text>
+  <text x="46" y="72" font-size="5" fill="#2C6E9C" opacity="0.4" font-family="monospace">T</text>
+  <text x="94" y="72" font-size="5" fill="#3D9B7E" opacity="0.4" font-family="monospace">A</text>
+</svg>
+
+<!-- 染色體插圖 -->
+<svg class="bg-fixed" style="top:20%;right:2%;opacity:0.055;width:100px;height:130px;" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chromosome X shape -->
+  <path d="M50,5 C55,30 65,50 85,60 C95,64 95,72 85,76 C65,86 55,106 50,125" stroke="#2C6E9C" stroke-width="3" opacity="0.5"/>
+  <path d="M50,5 C45,30 35,50 15,60 C5,64 5,72 15,76 C35,86 45,106 50,125" stroke="#3D9B7E" stroke-width="3" opacity="0.5"/>
+  <!-- Centromere -->
+  <ellipse cx="50" cy="68" rx="18" ry="6" fill="#1B2A4A" opacity="0.15"/>
+  <!-- Banding patterns -->
+  <line x1="43" y1="20" x2="57" y2="20" stroke="#2C6E9C" stroke-width="1.5" opacity="0.2"/>
+  <line x1="35" y1="35" x2="65" y2="35" stroke="#3D9B7E" stroke-width="1.5" opacity="0.2"/>
+  <line x1="28" y1="50" x2="72" y2="50" stroke="#2C6E9C" stroke-width="1.5" opacity="0.2"/>
+  <line x1="28" y1="85" x2="72" y2="85" stroke="#3D9B7E" stroke-width="1.5" opacity="0.2"/>
+  <line x1="35" y1="100" x2="65" y2="100" stroke="#2C6E9C" stroke-width="1.5" opacity="0.2"/>
+  <line x1="43" y1="115" x2="57" y2="115" stroke="#3D9B7E" stroke-width="1.5" opacity="0.2"/>
+</svg>
+
+<!-- 折線圖 -->
+<svg class="bg-fixed" style="top:60%;left:2%;opacity:0.045;width:160px;height:70px;color:#2C6E9C;" viewBox="0 0 160 70" fill="none" stroke="currentColor" stroke-width="1.5">
+  <polyline points="0,55 18,48 35,52 55,32 72,40 90,22 108,30 125,15 145,22 160,8"/>
+  <circle cx="55" cy="32" r="2.5" fill="currentColor"/>
+  <circle cx="90" cy="22" r="2.5" fill="currentColor"/>
+  <circle cx="125" cy="15" r="2.5" fill="currentColor"/>
+  <circle cx="160" cy="8" r="2.5" fill="currentColor"/>
+</svg>
+
+<!-- 長條圖 -->
+<svg class="bg-fixed" style="bottom:35%;right:3%;opacity:0.04;width:120px;height:70px;color:#3D9B7E;" viewBox="0 0 120 70" fill="none" stroke="currentColor" stroke-width="1.2">
+  <rect x="5" y="42" width="14" height="22" rx="2" opacity="0.6"/>
+  <rect x="23" y="25" width="14" height="39" rx="2" opacity="0.6"/>
+  <rect x="41" y="35" width="14" height="29" rx="2" opacity="0.6"/>
+  <rect x="59" y="12" width="14" height="52" rx="2" opacity="0.6"/>
+  <rect x="77" y="28" width="14" height="36" rx="2" opacity="0.6"/>
+  <rect x="95" y="18" width="14" height="46" rx="2" opacity="0.6"/>
+</svg>
+
+<div class="neuron" id="neuron-net"></div>
+<script>
+(function(){
+  var n = document.getElementById('neuron-net');
+  var dots = [];
+  for (var i = 0; i < 18; i++) {
+    var d = document.createElement('div');
+    d.className = 'neuron-dot';
+    var x = Math.random() * 94 + 2, y = Math.random() * 92 + 4;
+    d.style.left = x + '%'; d.style.top = y + '%';
+    n.appendChild(d);
+    dots.push({el:d, x:x, y:y});
+  }
+  for (var i = 0; i < 12; i++) {
+    var a = dots[Math.floor(Math.random()*dots.length)];
+    var b = dots[Math.floor(Math.random()*dots.length)];
+    if (a === b) continue;
+    var dx = b.x - a.x, dy = b.y - a.y, dist = Math.sqrt(dx*dx+dy*dy);
+    if (dist > 20 || dist < 5) continue;
+    var l = document.createElement('div');
+    l.className = 'neuron-line';
+    l.style.left = a.x + '%'; l.style.top = a.y + '%';
+    l.style.width = dist + '%';
+    l.style.transform = 'rotate(' + (Math.atan2(dy,dx)*180/Math.PI) + 'deg)';
+    n.appendChild(l);
+  }
+})();
+</script>
+
+<header>
+  <div class="container reveal header-inner">
+    <img src="profile.jpg" alt="Janice 大頭照" class="profile-pic">
+    <div class="header-text">
+      <h1>✦ Janice ✦</h1>
+      <div class="title-role">跨領域生醫數據工程師 | Lifescience &amp; AI Developer</div>
+      <div class="tagline">
+致力於橋接分子生物學（Wet Lab）與人工智慧（Dry Lab）。習慣以嚴謹的實驗邏輯思維審視數據，運用機器學習與電腦視覺解決生醫領域的真實痛點。渴望在生醫資訊、智慧醫療領域持續深耕。
+      </div>
+      <div class="info-row">
+        <span>🎓 國立中央大學 生命科學系 大三 (2023 - 2027)</span>
+        <span>✉️ <a href="mailto:940612janice@gmail.com">940612janice@gmail.com</a> &nbsp;|&nbsp; 💻 <a href="https://github.com/940612janice-ux" target="_blank">GitHub</a></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="container">
+    <div class="card-section reveal">
+      <h2 class="section-title">核心技能</h2>
+    <table class="skills-table">
+      <tr>
+        <th>AI &amp; 機器學習 (Dry Lab)</th>
+        <td>PyTorch, XGBoost, LightGBM, CatBoost, Scikit-learn, ResNet50</td>
+        <td>深度學習模型訓練、遷移學習、多模型融合、表格數據預測</td>
+      </tr>
+      <tr>
+        <th>數據分析與處理</th>
+        <td>Python, Pandas, NumPy, Matplotlib, Plotly, Data Cleaning</td>
+        <td>數據清洗、特徵工程、動態數據視覺化</td>
+      </tr>
+      <tr>
+        <th>開發與前端工具</th>
+        <td>Linux, Git, GitHub, HTML/CSS/JS, Colab, Google Cloud</td>
+        <td>版本控制、雲端與在地端環境建置、前後端串接、Google Cloud 模型部署與網站建置</td>
+      </tr>
+      <tr>
+        <th>分子生物學 (Wet Lab)</th>
+        <td>RT-qPCR, Western Blot, Cell Culture, 無菌操作</td>
+        <td>蛋白質/核酸定量、細胞培養、嚴謹實驗日誌管理</td>
+      </tr>
+      <tr>
+        <th>語言與學術探索</th>
+        <td>英文學術文獻閱讀與檢索 (PubMed / NCBI)</td>
+        <td>獨立閱讀英文文獻、生醫學術文獻檢索</td>
+      </tr>
+    </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="card-section reveal">
+      <h2 class="section-title">精選專案與實驗經歷</h2>
+
+    <div class="project reveal reveal-delay-1">
+      <div class="project-num">01. 醫療影像分類</div>
+      <div class="project-title">皮膚病變分類系統 (Computer Vision)</div>
+      <div class="project-sub">PyTorch · ResNet50 · Roboflow · Pandas</div>
+      <div class="project-desc">
+        基於深度學習的皮膚病變四分類系統，實現從數據處理到模型訓練的完整 Pipeline。<br>
+        資料來源：國際皮膚影像協作組織 (ISIC) 公開資料集
+      </div>
+      <ul>
+        <li>完整 Pipeline 串接：自 Roboflow 匯出資料集，利用 Pandas 清洗標籤，並客製化 PyTorch Dataset 與 DataLoader，實現多執行緒載入優化</li>
+        <li>分類目標：Melanoma（黑色素瘤）、nevus（痣）、Basal cell carcinoma（基底細胞癌）、Squamous Cell Carcinoma（鱗狀細胞癌）</li>
+        <li>遷移學習：導入預訓練 ResNet50，修改最終輸出層，整合 Torchvision 進行資料增強</li>
+        <li>自主訓練架構：Train/Validation 核心迴圈 + Checkpoint 自動儲存最優權重</li>
+        <li>量化成效：第 7 個 Epoch 收斂，驗證集準確率 93.87%</li>
+      </ul>
+      <div style="margin-top:8px;font-size:0.82rem;color:#2C6E9C;">🔗 GitHub Repository | 📄 專案簡報/Demo</div>
+      <a class="project-preview" href="https://skin-lesion-service-313273584388.asia-east1.run.app/" target="_blank">
+        <div class="project-preview-icon">🩺</div>
+        <div class="project-preview-text">
+          <div class="project-preview-title">皮膚病變分類器</div>
+          <div class="project-preview-desc">點擊前往 → 上傳照片即時辨識</div>
+        </div>
+        <div class="project-preview-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="project reveal reveal-delay-2">
+      <div class="project-num">02. 機器學習</div>
+      <div class="project-title">表格數據多模型整合系統 (Machine Learning)</div>
+      <div class="project-sub">XGBoost · LightGBM · CatBoost · Pandas · NumPy</div>
+      <div class="project-desc">
+        針對表格數據（課程專題競賽）進行特徵工程與主流 Boosting 模型的整合預測系統。
+      </div>
+      <ul>
+        <li>資料清洗與特徵對齊：Pandas 特徵分離、One-hot encoding、reindex 動態對齊欄位</li>
+        <li>嚴謹驗證：20% 獨立驗證集 + Early Stopping 監控泛化能力</li>
+        <li>多模型集成：以 MSE 為指標進行權重融合，提升預測穩定度</li>
+        <li>後處理流水線：NumPy 數據平滑 + 缺失值補 0，自動輸出標準 CSV</li>
+      </ul>
+      <a class="project-preview" href="https://github.com/940612janice-ux/xgboost-lightgbm-catboost-regression.git" target="_blank">
+        <div class="project-preview-icon">📊</div>
+        <div class="project-preview-text">
+          <div class="project-preview-title">GitHub Repository</div>
+          <div class="project-preview-desc">點擊前往 → 原始碼與完整說明</div>
+        </div>
+        <div class="project-preview-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="project reveal reveal-delay-3">
+      <div class="project-num">03. 生醫濕實驗技術</div>
+      <div class="project-title">Wet Lab Experience</div>
+      <div class="project-sub">RT-qPCR · Western Blot · Cell Culture</div>
+      <ul>
+        <li>細胞培養與藥物處理：前驅脂肪細胞無菌培養、藥物濃度處理</li>
+        <li>RT-qPCR：Total RNA 提取 → 核酸定量 → RT → qPCR 擴增，獨立統計作圖（miRNA 分析）</li>
+        <li>Western Blot：蛋白質電泳、轉漬、抗體雜交、目標蛋白質定量分析</li>
+        <li>嚴謹實驗日誌與 SOP 規範，擅長 Wet Lab 邏輯與數據歸納推導</li>
+      </ul>
+    </div>
+
+    <div class="project reveal reveal-delay-1">
+      <div class="project-num">04. 生成式 AI 行銷廣告</div>
+      <div class="project-title">2026 生成式 AI 創意設計團體競賽 — 行銷廣告與專案解說</div>
+      <div class="project-sub">AI 影片生成 · 生成式行銷 · 影音剪輯</div>
+      <div class="project-desc">
+        參加 2026 生成式 AI 創意設計團體競賽，運用 AI 影片生成技術製作品牌行銷廣告及專案簡報解說影片。
+      </div>
+      <ul>
+        <li>使用 AI 生成工具製作 30 秒品牌行銷廣告影片，涵蓋視覺設計、文案生成與配音</li>
+        <li>製作專案簡報與解說影片，完整說明創作理念、技術流程與競賽成果</li>
+        <li>整合多種生成式 AI 工具（影像生成、影片合成、語音合成）完成影音製作</li>
+      </ul>
+      <div class="tab-bar" style="margin-top:8px;">
+        <button class="tab-btn active" data-video="RPh3uPl_N4c">🎙️ 專案簡報與解說</button>
+        <button class="tab-btn" data-video="O_aIUukzC84">🎬 品牌行銷廣告影片</button>
+      </div>
+      <div class="video-wrapper" data-video="RPh3uPl_N4c">
+        <img class="video-thumb" src="https://i.ytimg.com/vi/RPh3uPl_N4c/hqdefault.jpg" alt="影片預覽">
+        <div class="video-play-btn"></div>
+      </div>
+    </div>
+
+    <div class="project reveal reveal-delay-2">
+      <div class="project-num">05. 互動網頁實作</div>
+      <div class="project-title">皮膚管理與判別之療癒系互動遊戲</div>
+      <div class="project-sub">HTML · CSS · JavaScript · Geolocation API</div>
+      <div class="project-desc">
+        結合皮膚健康知識、互動遊戲與在地天氣/UV 數據的趣味網頁專案，讓使用者透過遊戲化方式學習皮膚照護。
+      </div>
+      <ul>
+        <li>前端互動設計：使用 HTML/CSS/JavaScript 打造療癒系遊戲介面與動畫效果</li>
+        <li>在地化功能：整合 Geolocation API 取得使用者位置，提供即時天氣與 UV 指數資訊</li>
+        <li>皮膚健康判別：設計互動問答與膚況檢測機制，結合知識宣導提升使用者 skin awareness</li>
+        <li>響應式設計：支援行動裝置與桌機瀏覽，確保跨平台使用體驗</li>
+      </ul>
+      <a class="project-preview" href="https://940612janice-ux.github.io/skin-app-websit/" target="_blank">
+        <div class="project-preview-icon">🧴</div>
+        <div class="project-preview-text">
+          <div class="project-preview-title">皮膚小夥伴互動遊戲</div>
+          <div class="project-preview-desc">點擊體驗 → 皮膚健康判別 × 療癒系互動</div>
+        </div>
+        <div class="project-preview-arrow">→</div>
+      </a>
+    </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<footer>
+  <div class="container">&copy; 2026 Janice</div>
+</footer>
+
+
+
+<script>
+(function() {
+  /* Click-to-play YouTube */
+  document.querySelectorAll('.video-wrapper').forEach(function(w) {
+    w.addEventListener('click', function() {               /* 點擊事件觸發*/
+      var vid = this.getAttribute('data-video');           /*宣告 vid 變數，用來儲存抓到的影片 ID*/
+      if (!vid || this.querySelector('iframe')) return;    /*不直接在頁面載入時插入 YouTube iframe（避免浪費效能與請求）*/
+      var iframe = document.createElement('iframe');       /*等到使用者真正點擊時才建立 iframe，節省頻寬與頁面載入速度*/
+      iframe.setAttribute('src', 'https://www.youtube.com/embed/' + vid + '?autoplay=1');
+      iframe.setAttribute('title', 'YouTube');
+      iframe.setAttribute('frameborder', '0');
+      iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+      iframe.setAttribute('allowfullscreen', '');
+      this.innerHTML = '';             /*先把點擊區域(影片封面)裡面原本的東西清空*/
+      this.appendChild(iframe);        /*記憶體中設定好的 <iframe>正式渲染/掛載到 HTML 頁面上 (瀏覽器真正開始向 YouTube 請求影片資源 )*/
+    });
+  });
+
+  /* Tab switching */
+  document.querySelectorAll('.tab-bar').forEach(function(bar) {
+    var wrapper = bar.nextElementSibling;
+    bar.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        bar.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+        var vid = this.getAttribute('data-video');
+        wrapper.setAttribute('data-video', vid);
+        wrapper.innerHTML = '';
+        var thumb = document.createElement('img');
+        thumb.className = 'video-thumb';
+        thumb.src = 'https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg';
+        thumb.alt = '影片預覽';
+        wrapper.appendChild(thumb);
+        var playBtn = document.createElement('div');
+        playBtn.className = 'video-play-btn';
+        wrapper.appendChild(playBtn);
+      });
+    });
+  });
+
+  /* Scroll Reveal */
+  var revealEls = document.querySelectorAll('.reveal');
+  var ro = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) { e.target.classList.add('active'); } });
+  }, { threshold: 0.15 });
+  revealEls.forEach(function(el) { ro.observe(el); });
+
+
+})();
+</script>
+
+</body>
+</html>
